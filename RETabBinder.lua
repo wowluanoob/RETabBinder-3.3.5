@@ -77,7 +77,7 @@ local function eventHandler(self, event, ...)
 		local PVPType, isFFa = GetZonePVPInfo()
 		local _, ZoneType = IsInInstance()
 
-		if ZoneType == "arena" or ZoneType == "pvp" or (RETabBinderFrame.db.factionrealm[UnitName("player")].OpenWorld == true and ZoneType == "none") or PVPType == "combat" or isFFa or event == "DUEL_REQUESTED" then
+		if ZoneType == "arena" or ZoneType == "pvp" or RETabBinderFrame.db.factionrealm[UnitName("player")].OpenWorld == true or PVPType == "combat" or isFFa or event == "DUEL_REQUESTED" then
 			if CurrentBind ~= "TARGETNEARESTENEMYPLAYER" then
 				local Success
 				if GetBindingKey("TARGETNEARESTENEMY") == TargetKey then
