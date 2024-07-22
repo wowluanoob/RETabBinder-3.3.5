@@ -1,6 +1,7 @@
 local addonName = ...
 local _G = _G
 local print, pairs = print, pairs
+local string = string
 local InCombatLockdown = InCombatLockdown
 local IsInInstance = IsInInstance
 local GetCurrentBindingSet = GetCurrentBindingSet
@@ -35,7 +36,9 @@ local function eventHandler(self, event, ...)
 		self:RegisterEvent("CHAT_MSG_SYSTEM")
 		self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	elseif event == "ZONE_CHANGED_NEW_AREA" or (event == "PLAYER_REGEN_ENABLED" and Fail == true) or event == "DUEL_REQUESTED" or event == "DUEL_FINISHED" or event == "CHAT_MSG_SYSTEM" then
-		
+
+		local settings = RETabBinderFrame.db.factionrealm[UnitName("player")]
+
 		if event == "CHAT_MSG_SYSTEM" then
 			local msg = ...
 			if msg == _G.ERR_DUEL_REQUESTED then
@@ -44,7 +47,6 @@ local function eventHandler(self, event, ...)
 				return
 			end
 		end
-
 
 		if InCombatLockdown() then
 			Fail = true
@@ -57,7 +59,7 @@ local function eventHandler(self, event, ...)
 		if TargetKey == nil then
 			TargetKey = GetBindingKey("TARGETNEARESTENEMY")
 		end
-		if TargetKey == nil and RETabBinderFrame.db.factionrealm[UnitName("player")].DefaultKey == true then
+		if TargetKey == nil and settings.DefaultKey == true then
 			TargetKey = "TAB"
 		end
 
@@ -65,7 +67,7 @@ local function eventHandler(self, event, ...)
 		if LastTargetKey == nil then
 			LastTargetKey = GetBindingKey("TARGETPREVIOUSENEMY")
 		end
-		if LastTargetKey == nil and RETabBinderFrame.db.factionrealm[UnitName("player")].DefaultKey == true then
+		if LastTargetKey == nil and settings.DefaultKey == true then
 			LastTargetKey = "SHIFT-TAB"
 		end
 
@@ -77,7 +79,7 @@ local function eventHandler(self, event, ...)
 		local PVPType, isFFa = GetZonePVPInfo()
 		local _, ZoneType = IsInInstance()
 
-		if ZoneType == "arena" or ZoneType == "pvp" or RETabBinderFrame.db.factionrealm[UnitName("player")].OpenWorld == true or PVPType == "combat" or isFFa or event == "DUEL_REQUESTED" then
+		if ZoneType == "arena" or ZoneType == "pvp" or settings.OpenWorld == true or PVPType == "combat" or isFFa or event == "DUEL_REQUESTED" then
 			if CurrentBind ~= "TARGETNEARESTENEMYPLAYER" then
 				local Success
 				if GetBindingKey("TARGETNEARESTENEMY") == TargetKey then
@@ -88,7 +90,7 @@ local function eventHandler(self, event, ...)
 				if Success == true then
 					SaveBindings(BindSet)
 					Fail = false
-					if RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode == false then
+					if settings.SilentMode == false then
 						print("\124cFF74D06C[RETabBinder]\124r PVP Mode enabled")
 					end
 				else
@@ -96,7 +98,7 @@ local function eventHandler(self, event, ...)
 				end
 			elseif CurrentBind == "TARGETNEARESTENEMYPLAYER" then
 				Fail = false
-				if RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode == false then
+				if settings.SilentMode == false then
 					print("\124cFF74D06C[RETabBinder]\124r PVP Mode enabled")
 				end
 			end
@@ -111,7 +113,7 @@ local function eventHandler(self, event, ...)
 				if Success == true then
 					SaveBindings(BindSet)
 					Fail = false
-					if RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode == false then
+					if settings.SilentMode == false then
 						print("\124cFF74D06C[RETabBinder]\124r PVE Mode enabled")
 					end
 				else
@@ -119,11 +121,10 @@ local function eventHandler(self, event, ...)
 				end
 			elseif CurrentBind == "TARGETNEARESTENEMY" then
 				Fail = false
-				if RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode == false then
+				if settings.SilentMode == false then
 					print("\124cFF74D06C[RETabBinder]\124r PVE Mode enabled")
 				end
 			end
-
 		end
 	end
 end
@@ -134,23 +135,26 @@ RETabBinderFrame:Hide()
 
 local function RETabBinderSlashCMD(msg)
 	local _, _, cmd, args = string.find(msg, "%s?(%w+)%s?(.*)")
+	local settings = RETabBinderFrame.db.factionrealm[UnitName("player")]
 	local colorRed = _G.RED_FONT_COLOR_CODE
 	local colorGreen = _G.GREEN_FONT_COLOR_CODE
 	local colorEnd = _G.FONT_COLOR_CODE_CLOSE
 	if cmd == "toggle" and args == "defaultKey" then
-		RETabBinderFrame.db.factionrealm[UnitName("player")].DefaultKey = not RETabBinderFrame.db.factionrealm[UnitName("player")].DefaultKey
-		print(colorRed.."Default Key"..colorEnd.." mode is now"..colorGreen,RETabBinderFrame.db.factionrealm[UnitName("player")].DefaultKey,colorEnd)
+		settings.DefaultKey = not settings.DefaultKey
+		print(colorRed.."Default Key"..colorEnd.." mode is now"..colorGreen,settings.DefaultKey,colorEnd)
 	elseif cmd == "toggle" and args == "openWorld" then
-		RETabBinderFrame.db.factionrealm[UnitName("player")].OpenWorld = not RETabBinderFrame.db.factionrealm[UnitName("player")].OpenWorld
-		print(colorRed.."Open World"..colorEnd.." mode is now"..colorGreen,RETabBinderFrame.db.factionrealm[UnitName("player")].OpenWorld,colorEnd)
+		settings.OpenWorld = not settings.OpenWorld
+		print(colorRed.."Open World"..colorEnd.." mode is now"..colorGreen,settings.OpenWorld,colorEnd)
 	elseif cmd == "toggle" and args == "silentMode" then
-		RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode = not RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode
-		print(colorRed.."Silent Mode"..colorEnd.." is now"..colorGreen,RETabBinderFrame.db.factionrealm[UnitName("player")].SilentMode,colorEnd)
+		settings.SilentMode = not settings.SilentMode
+		print(colorRed.."Silent Mode"..colorEnd.." is now"..colorGreen,settings.SilentMode,colorEnd)
 	elseif cmd == "help" and args == "" then
-		print("\nSyntax:\n/rtb toggle "..colorRed.."defaultKey"..colorEnd.."\nToggles Default Key mode"..colorGreen.." - Set to "..colorEnd..colorRed.."true"..colorEnd..colorGreen.." if you are using the default action for the TAB button else leave at "..colorEnd..colorRed.."false"..colorEnd..".\n/rtb toggle "..colorRed.."openWorld"..colorEnd.."\nToggles Open World mode"..colorGreen.." - Set to "..colorEnd..colorRed.."true"..colorEnd..colorGreen.." if you want to leave PVP mode on while in the open world"..colorEnd.."\n/rtb toggle "..colorRed.."silentMode"..colorEnd.."\nToggle Silent Mode"..colorGreen.." - Dont print PVP/PVE mode status"..colorEnd)
+		for setting, value in pairs(settings) do 
+			print(colorRed,setting,colorEnd,"is",colorGreen,value,colorEnd) 
+		end
+		print(colorRed.."Syntax:"..colorEnd.."\n/rtb toggle "..colorRed.."defaultKey"..colorEnd.."\nToggles Default Key mode"..colorGreen.." - Set to "..colorEnd..colorRed.."true"..colorEnd..colorGreen.." if you are using the default action for the TAB button else leave at "..colorEnd..colorRed.."false"..colorEnd..".\n/rtb toggle "..colorRed.."openWorld"..colorEnd.."\nToggles Open World mode"..colorGreen.." - Set to "..colorEnd..colorRed.."true"..colorEnd..colorGreen.." if you want to leave PVP mode on while in the open world"..colorEnd.."\n/rtb toggle "..colorRed.."silentMode"..colorEnd.."\nToggle Silent Mode"..colorGreen.." - Dont print PVP/PVE mode status"..colorEnd)
 	else 
 		print("Type '/rtb "..colorGreen.."help"..colorEnd.."' for a list of commands")
-		for k,v in pairs(RETabBinderFrame.db.factionrealm[UnitName("player")]) do print(k,v) end
 	end
 end
 
